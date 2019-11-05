@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\user;
 
+use App\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ApiController;
 
-class UserController extends Controller
+class UserController extends ApiController
 {
     /**
      * Display a listing of the resource.
@@ -14,17 +15,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $usuarios = User::all();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return $this->showAll($usuarios);
     }
 
     /**
@@ -35,7 +28,21 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'name' => 'required|min:2',
+            'lastname' => 'required|min:2',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        // Datos faltantes
+        $data['verified'] = 0;
+        $data['verification_token'] = User::generateVerificationToken();
+        $data['admin'] = false;
+
+        $usuario = User::create($data);
+
+        return $this->showOne($usuario, 201);
     }
 
     /**
@@ -46,18 +53,9 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
-    }
+        $usuario = User::findOrFail($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+        return $this->showOne($usuario);
     }
 
     /**
@@ -69,7 +67,51 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'min:2',
+            'lastname' => 'min:2',
+            'email' => 'email|unique:users,email,' . $user->id,
+            'password' => 'min:6|confirmed',
+            'admin' => 'in: true, false',
+        ]);
+
+        if ($request->has('name'))
+        {
+            $user->name = $data['name'];
+        }
+
+        if ($request->has('lastname'))
+        {
+            $user->lastname = $data['lastname'];
+        }
+
+        if ($request->has('email') && $user->email != $data['email'])
+        {
+            $user->verified = "0";
+            $user->verification_token = User::generateVerificationToken();
+            $user->email = $data['email'];
+        }
+
+        if ($request->has('admin'))
+        {
+            if ($user->verified != 1)
+            {
+                return $this->errorResponse('Unicamente los usuarios verificados pueden cambiar su valor de administrador', 409);
+            }
+
+            $user->admin = $data['admin'];
+        }
+
+        if (!$user->isDirty()) 
+        {
+            return $this->errorResponse('Se debe especificar al menos un valor diferente para actualizar', 422);
+        }
+
+        $user->save();
+
+        return $this->showOne($user);
     }
 
     /**
@@ -80,6 +122,10 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $user->delete();
+
+        return $this->showOne($user);
     }
 }
