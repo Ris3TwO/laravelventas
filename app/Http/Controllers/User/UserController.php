@@ -4,6 +4,7 @@ namespace App\Http\Controllers\user;
 
 use App\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Controllers\ApiController;
 
 class UserController extends ApiController
@@ -26,21 +27,21 @@ class UserController extends ApiController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|min:2',
-            'lastname' => 'required|min:2',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed'
-        ]);
+        // $data = $request->validate([
+        //     'name' => 'required|min:2',
+        //     'lastname' => 'required|min:2',
+        //     'email' => 'required|email|unique:users',
+        //     'password' => 'required|min:6|confirmed'
+        // ]);
 
         // Datos faltantes
-        $data['verified'] = 0;
-        $data['verification_token'] = User::generateVerificationToken();
-        $data['admin'] = false;
+        $request->verified = 0;
+        $request->verification_token = User::generateVerificationToken();
+        $request->admin = false;
 
-        $usuario = User::create($data);
+        $usuario = User::create($request->all());
 
         return $this->showOne($usuario, 201);
     }

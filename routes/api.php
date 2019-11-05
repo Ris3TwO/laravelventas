@@ -14,6 +14,15 @@ use Illuminate\Http\Request;
 */
 
 Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
+
+    /**
+     * Fallback
+     */
+    Route::fallback(function(){
+        return response()->json([
+            'message' => 'Página no encontrada. Si el error persiste, póngase en contacto con el administrador a través del correo: info@laravelventas.test'], 404);
+    });
+
     /**
      * Buyers
      */
