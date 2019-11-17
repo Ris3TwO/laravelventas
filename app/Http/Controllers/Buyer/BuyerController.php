@@ -15,9 +15,17 @@ class BuyerController extends ApiController
      */
     public function index()
     {
-        $compradores = Buyer::has('transactions')->get();
+        try {
+            $buyers = Buyer::has('transactions')->get();
 
-        return $this->showAll($compradores);
+            return $this->showAll($buyers);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -28,6 +36,15 @@ class BuyerController extends ApiController
      */
     public function show(Buyer $buyer)
     {
-        return $this->showOne($buyer);
+        try {
+            return $this->showOne($buyer);
+        } catch (QueryException $ex) {
+            if (!config('app.debug'))
+            {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 }

@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         factory(User::class, $cantidadUsuarios)->create();
         factory(Category::class, $cantidadCategorias)->create();
 
-        factory(Product::class, $cantidadTransacciones)->create()
+        factory(Product::class, $cantidadProductos)->create()
         ->each(
             function ($producto)
             {

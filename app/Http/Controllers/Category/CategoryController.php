@@ -47,7 +47,16 @@ class CategoryController extends ApiController
      */
     public function show(Category $category)
     {
-        return $this->showOne($category);
+        try {
+            return $this->showOne($category);
+        } catch (QueryException $ex) {
+            if (!config('app.debug'))
+            {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**

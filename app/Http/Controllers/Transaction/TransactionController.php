@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Transaction;
 
+use App\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 
@@ -14,72 +15,36 @@ class TransactionController extends ApiController
      */
     public function index()
     {
-        //
-    }
+        try {
+            $transactions = Transaction::all();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+            return $this->showAll($transactions);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Transaction $transaction)
     {
-        //
-    }
+        try {
+            return $this->showOne($transaction);
+        } catch (QueryException $ex) {
+            if (!config('app.debug'))
+            {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 }
