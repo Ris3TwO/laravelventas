@@ -26,6 +26,10 @@ class Product extends Model
         'seller_id',
     ];
 
+    protected $hidden = [
+        'pivot'
+    ];
+
     public function checkStatus()
     {
         return $this->status == Product::PRODUCT_AVAILABLE;

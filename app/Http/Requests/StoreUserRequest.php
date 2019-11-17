@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Traits\ApiResponser;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\FormRequest;
 
 class StoreUserRequest extends FormRequest
 {
@@ -31,11 +31,6 @@ class StoreUserRequest extends FormRequest
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6|confirmed'
         ];
-    }
-
-    public function response(array $errors)
-    {
-        return $this->errorResponse($errors, 422);
     }
 
     public function messages()
