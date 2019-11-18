@@ -38,21 +38,22 @@ class UserController extends ApiController
      */
     public function store(StoreUserRequest $request)
     {
-        // $data = $request->validate([
-        //     'name' => 'required|min:2',
-        //     'lastname' => 'required|min:2',
-        //     'email' => 'required|email|unique:users',
-        //     'password' => 'required|min:6|confirmed'
-        // ]);
+        try {
+            // Datos faltantes
+            $request->verified = 0;
+            $request->verification_token = User::generateVerificationToken();
+            $request->admin = false;
 
-        // Datos faltantes
-        $request->verified = 0;
-        $request->verification_token = User::generateVerificationToken();
-        $request->admin = false;
+            $usuario = User::create($request->all());
 
-        $usuario = User::create($request->all());
+            return $this->showOne($usuario, 201);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
 
-        return $this->showOne($usuario, 201);
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -63,7 +64,15 @@ class UserController extends ApiController
      */
     public function show(User $user)
     {
-        return $this->showOne($user);
+        try {
+            return $this->showOne($user);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -75,43 +84,51 @@ class UserController extends ApiController
      */
     public function update(Request $request, User $user)
     {
-        $data = $request->validate([
-            'name' => 'min:2',
-            'lastname' => 'min:2',
-            'email' => 'email|unique:users,email,' . $user->id,
-            'password' => 'min:6|confirmed',
-            'admin' => 'in: true, false',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'min:2',
+                'lastname' => 'min:2',
+                'email' => 'email|unique:users,email,' . $user->id,
+                'password' => 'min:6|confirmed',
+                'admin' => 'in: true, false',
+            ]);
 
-        if ($request->has('name')) {
-            $user->name = $data['name'];
-        }
-
-        if ($request->has('lastname')) {
-            $user->lastname = $data['lastname'];
-        }
-
-        if ($request->has('email') && $user->email != $data['email']) {
-            $user->verified = "0";
-            $user->verification_token = User::generateVerificationToken();
-            $user->email = $data['email'];
-        }
-
-        if ($request->has('admin')) {
-            if ($user->verified != 1) {
-                return $this->errorResponse('Unicamente los usuarios verificados pueden cambiar su valor de administrador', 409);
+            if ($request->has('name')) {
+                $user->name = $data['name'];
             }
 
-            $user->admin = $data['admin'];
+            if ($request->has('lastname')) {
+                $user->lastname = $data['lastname'];
+            }
+
+            if ($request->has('email') && $user->email != $data['email']) {
+                $user->verified = "0";
+                $user->verification_token = User::generateVerificationToken();
+                $user->email = $data['email'];
+            }
+
+            if ($request->has('admin')) {
+                if ($user->verified != 1) {
+                    return $this->errorResponse('Unicamente los usuarios verificados pueden cambiar su valor de administrador', 409);
+                }
+
+                $user->admin = $data['admin'];
+            }
+
+            if (!$user->isDirty()) {
+                return $this->errorResponse('Se debe especificar al menos un valor diferente para actualizar', 422);
+            }
+
+            $user->save();
+
+            return $this->showOne($user);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('El recurso no se pudo actualizar de forma exitosa.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
         }
-
-        if (!$user->isDirty()) {
-            return $this->errorResponse('Se debe especificar al menos un valor diferente para actualizar', 422);
-        }
-
-        $user->save();
-
-        return $this->showOne($user);
     }
 
     /**
@@ -127,8 +144,7 @@ class UserController extends ApiController
 
             return $this->showOne($user);
         } catch (QueryException $ex) {
-            if (!config('app.debug'))
-            {
+            if (!config('app.debug')) {
                 return $this->errorResponse('El recurso no se pudo eliminar de forma permanentemente.', 409);
             }
 
