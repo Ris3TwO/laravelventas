@@ -5,12 +5,15 @@ namespace App;
 use App\Seller;
 use App\Category;
 use App\Transaction;
+use App\Transformers\ProductTransformer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     use SoftDeletes;
+
+    public $transformer = ProductTransformer::class;
 
     const PRODUCT_AVAILABLE = 'available';
     const PRODUCT_NOT_AVAILABLE = 'not available';

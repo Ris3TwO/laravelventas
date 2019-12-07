@@ -4,12 +4,16 @@ namespace App\Http\Controllers\user;
 
 use App\User;
 use Illuminate\Http\Request;
+use App\Events\UserMailChanged;
+use Illuminate\Auth\Events\Verified;
 use App\Http\Requests\StoreUserRequest;
-use App\Http\Controllers\ApiController;
 use Illuminate\Database\QueryException;
+use App\Http\Controllers\ApiController;
+use Illuminate\Foundation\Auth\VerifiesEmails;
 
 class UserController extends ApiController
 {
+    use VerifiesEmails;
     /**
      * Display a listing of the resource.
      *
@@ -40,11 +44,11 @@ class UserController extends ApiController
     {
         try {
             // Datos faltantes
-            $request->verified = 0;
-            $request->verification_token = User::generateVerificationToken();
             $request->admin = false;
 
             $usuario = User::create($request->all());
+
+            $usuario->sendEmailVerificationNotification();
 
             return $this->showOne($usuario, 201);
         } catch (QueryException $ex) {
@@ -102,13 +106,15 @@ class UserController extends ApiController
             }
 
             if ($request->has('email') && $user->email != $data['email']) {
-                $user->verified = "0";
-                $user->verification_token = User::generateVerificationToken();
                 $user->email = $data['email'];
+                $user->email_verified_at = null;
+
+                //Enviar correo de verificación
+                UserMailChanged::dispatch($user);
             }
 
             if ($request->has('admin')) {
-                if ($user->verified != 1) {
+                if ($user->email_verified_at == null) {
                     return $this->errorResponse('Unicamente los usuarios verificados pueden cambiar su valor de administrador', 409);
                 }
 
@@ -151,4 +157,25 @@ class UserController extends ApiController
             return $this->errorResponse($ex->getMessage(), 500);
         }
     }
+
+    // public function verify(Request $request)
+    // {
+    //     $user = User::findOrFail($request['id']);
+
+    //     // if ($user->email_verified_at != null) {
+    //     //     return $this->errorResponse('¡Este correo ya fue verificado!', 500);
+    //     // }
+
+    //     if ($user->hasVerifiedEmail()) {
+    //         return $this->showMessage('¡El usuario ya tiene correo electrónico verificado!', 422);
+    //     }
+
+    //     $date = date("Y-m-d g:i:s");
+
+    //     $user->email_verified_at = $date; // to enable the “email_verified_at field of that user be a current time stamp by mimicing the must verify email feature
+
+    //     $user->save();
+
+    //     return $this->showMessage('¡Correo electrónico verificado exitosamente!');
+    // }
 }

@@ -3,14 +3,19 @@
 namespace App;
 
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\VerifyApiEmail;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\VerifyUpdatedEmail;
+use App\Transformers\UserTransformer;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, SoftDeletes;
+
+    public $transformer = UserTransformer::class;
 
     protected $table = 'users';
     protected $dates = ['deleted_at'];
@@ -25,8 +30,6 @@ class User extends Authenticatable
         'lastname',
         'email',
         'password',
-        'verified',
-        'verification_token',
         'admin',
     ];
 
@@ -38,7 +41,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'verification_token',
     ];
 
     /**
@@ -50,9 +52,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public static function generateVerificationToken()
+    public function sendEmailVerificationNotification()
     {
-        return str_random(40);
+        $this->notify(new VerifyApiEmail); // my notification
+    }
+
+    public function sendUpdatedEmailVerificationNotification()
+    {
+        $this->notify(new VerifyUpdatedEmail); // my notification
     }
 
     public function setPasswordAttribute($password)

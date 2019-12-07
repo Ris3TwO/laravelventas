@@ -18,9 +18,10 @@ Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
     /**
      * Fallback
      */
-    Route::fallback(function(){
+    Route::fallback(function () {
         return response()->json([
-            'message' => 'Página no encontrada. Si el error persiste, póngase en contacto con el administrador a través del correo: info@laravelventas.test'], 404);
+            'message' => 'Página no encontrada. Si el error persiste, póngase en contacto con el administrador a través del correo: info@laravelventas.test'
+        ], 404);
     });
 
     /**
@@ -69,6 +70,17 @@ Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
      * Users
      */
     Route::resource('users', 'User\UserController', ['except' => ['create', 'edit']]);
+    // Route::get('users/verify/{id}', 'User\UserController@verify')->name('verify');
+
+    /**
+     * Email Verification
+     */
+    Route::post('email/resend', 'User\VerificationApiController@resend')->name('verificationapi.resend');
+    Route::get('email/verify/{id}', 'User\VerificationApiController@verify')->name('verificationapi.verify')->middleware('signed');
+
+    // Route::get('email', function () {
+    //     return new App\Mail\EmailVerification(App\User::findOrFail(900));
+    // });
 });
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {

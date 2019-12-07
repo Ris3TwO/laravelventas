@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreSellerProductRequest;
+use Illuminate\Database\QueryException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class SellerProductController extends ApiController
@@ -90,6 +91,12 @@ class SellerProductController extends ApiController
                 if ($product->checkStatus() && $product->categories()->count() == 0) {
                     return $this->errorResponse('Un producto activo debe tener al menos una categoría', 409);
                 }
+            }
+
+            if ($request->hasFile('image')) {
+                Storage::delete($product->image);
+
+                $product->image = $request->image->store('');
             }
 
             if ($product->isClean()) {

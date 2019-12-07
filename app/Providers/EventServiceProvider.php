@@ -18,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\ProductWasSelled' => [
             'App\Listeners\CheckProductStatus',
         ],
+        'App\Events\UserMailChanged' => [
+            'App\Listeners\SendEmailVerification',
+        ]
     ];
 
     /**

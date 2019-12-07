@@ -29,11 +29,11 @@ class ProductBuyerTransactionController extends ApiController
             return $this->errorResponse('El comprador debe ser diferente al vendedor', 409);
         }
 
-        if (!$buyer->verified != 1) {
+        if (!$buyer->email_verified_at == null) {
             return $this->errorResponse('El comprador debe ser un usuario verificado', 409);
         }
 
-        if (!$product->seller->verified != 1) {
+        if (!$product->seller->email_verified_at == null) {
             return $this->errorResponse('El vendedor debe ser un usuario verificado', 409);
         }
 
