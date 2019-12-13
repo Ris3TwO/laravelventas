@@ -13,12 +13,11 @@
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->middleware('guest');
 
-// Route::get('email', function () {
-//     return new App\Mail\EmailVerification(App\User::findOrFail(1));
-// });
-
-Auth::routes(['verify' => true]);
+Auth::routes([
+    'verify' => true,
+    'register' => false,
+]);
 
 Route::get('/home', 'HomeController@index')->name('home')->middleware('verified');

@@ -16,9 +16,17 @@ class ProductCategoryController extends ApiController
      */
     public function index(Product $product)
     {
-        $categories = $product->categories;
+        try {
+            $categories = $product->categories;
 
-        return $this->showAll($categories);
+            return $this->showAll($categories);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -30,10 +38,18 @@ class ProductCategoryController extends ApiController
      */
     public function update(Request $request, Product $product, Category $category)
     {
-        //sync, attach, synWithoutDetaching
-        $product->categories()->syncWithoutDetaching([$category->id]);
+        try {
+            //sync, attach, synWithoutDetaching
+            $product->categories()->syncWithoutDetaching([$category->id]);
 
-        return $this->showAll($product->categories);
+            return $this->showAll($product->categories);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -44,12 +60,20 @@ class ProductCategoryController extends ApiController
      */
     public function destroy(Product $product, Category $category)
     {
-        if (!$product->categories()->find($category->id)) {
-            return $this->errorResponse('La categoría especificada no es una categoría de este producto.', 404);
+        try {
+            if (!$product->categories()->find($category->id)) {
+                return $this->errorResponse('La categoría especificada no es una categoría de este producto.', 404);
+            }
+
+            $product->categories()->detach([$category->id]);
+
+            return $this->showAll($product->categories);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
         }
-
-        $product->categories()->detach([$category->id]);
-
-        return $this->showAll($product->categories);
     }
 }

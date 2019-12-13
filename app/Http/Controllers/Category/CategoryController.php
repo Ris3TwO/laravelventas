@@ -5,10 +5,18 @@ namespace App\Http\Controllers\Category;
 use App\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use App\Transformers\CategoryTransformer;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class CategoryController extends ApiController
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->middleware('transform.input:' . CategoryTransformer::class)->only(['store', 'update']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,9 +24,17 @@ class CategoryController extends ApiController
      */
     public function index()
     {
-        $categories = Category::all();
+        try {
+            $categories = Category::all();
 
-        return $this->showAll($categories);
+            return $this->showAll($categories);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -29,14 +45,22 @@ class CategoryController extends ApiController
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|min:2|max:20',
-            'description' => 'required|min:2|max:150',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'required|min:2|max:20',
+                'description' => 'required|min:2|max:150',
+            ]);
 
-        $category = Category::create($data);
+            $category = Category::create($data);
 
-        return $this->showOne($category, 201);
+            return $this->showOne($category, 201);
+        } catch (QueryException $ex) {
+            if (!config('app.debug')) {
+                return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
+            }
+
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
     }
 
     /**
@@ -50,8 +74,7 @@ class CategoryController extends ApiController
         try {
             return $this->showOne($category);
         } catch (QueryException $ex) {
-            if (!config('app.debug'))
-            {
+            if (!config('app.debug')) {
                 return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
             }
 
@@ -109,8 +132,7 @@ class CategoryController extends ApiController
 
             return $this->showOne($category);
         } catch (QueryException $ex) {
-            if (!config('app.debug'))
-            {
+            if (!config('app.debug')) {
                 return $this->errorResponse('El recurso no se pudo eliminar de forma permanentemente.', 409);
             }
 

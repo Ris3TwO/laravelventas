@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Http\Request;
 use App\Events\UserMailChanged;
 use Illuminate\Auth\Events\Verified;
+use App\Transformers\UserTransformer;
 use App\Http\Requests\StoreUserRequest;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\ApiController;
@@ -14,6 +15,13 @@ use Illuminate\Foundation\Auth\VerifiesEmails;
 class UserController extends ApiController
 {
     use VerifiesEmails;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->middleware('transform.input:' . UserTransformer::class)->only(['store', 'update']);
+    }
     /**
      * Display a listing of the resource.
      *

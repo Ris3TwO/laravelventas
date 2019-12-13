@@ -42,6 +42,13 @@ class UserTransformer extends TransformerAbstract
             'fechaCreacion' => (string) $user->created_at,
             'fechaActualizacion' => (string) $user->updated_at,
             'fechaEliminacion' => isset($user->deleted_at) ? (string) $user->deleted_at : null,
+
+            'links' => [
+                [
+                    'rel' => 'self',
+                    'href' => route('users.show', $user->id),
+                ],
+            ],
         ];
     }
 
@@ -57,6 +64,23 @@ class UserTransformer extends TransformerAbstract
             'fechaCreacion' => 'created_at',
             'fechaActualizacion' => 'updated_at',
             'fechaEliminacion' => 'deleted_at',
+        ];
+
+        return isset($attribute[$index]) ? $attribute[$index] : null;
+    }
+
+    public static function transformedAttribute($index)
+    {
+        $attribute = [
+            'id' => 'identificador',
+            'name' => 'nombres',
+            'lastname' => 'apellidos',
+            'email' => 'correo',
+            'email_verified_at' => 'correoVerificado',
+            'admin' => 'esAdministrador',
+            'created_at' => 'fechaCreacion',
+            'updated_at' => 'fechaActualizacion',
+            'deleted_at' => 'fechaEliminacion',
         ];
 
         return isset($attribute[$index]) ? $attribute[$index] : null;

@@ -4,6 +4,9 @@ namespace App\Traits;
 
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 trait ApiResponser
 {
@@ -14,7 +17,7 @@ trait ApiResponser
 
     protected function errorResponse($message, $code)
     {
-        return response()->json(['message' => $message, 'code' => $code], $code);
+        return response()->json(['errors' => $message, 'code' => $code], $code);
     }
 
     protected function showAll(Collection $collection, $code = 200)
@@ -27,7 +30,14 @@ trait ApiResponser
 
         $collection = $this->filterData($collection, $transformer);
         $collection = $this->sortData($collection, $transformer);
+        if (is_array($this->paginate($collection)) && in_array("error", $this->paginate($collection))) {
+            $response = $this->paginate($collection);
+            return $this->errorResponse($response['error'], 422);
+        } else {
+            $collection = $this->paginate($collection);
+        }
         $collection = $this->transformData($collection, $transformer);
+        $collection = $this->cacheResponse($collection);
 
         return $this->successResponse($collection, $code);
     }
@@ -68,10 +78,64 @@ trait ApiResponser
         return $collection;
     }
 
+    protected function paginate(Collection $collection)
+    {
+        $messages = [
+            'integer' => 'El valor de :attribute debe ser un número entero.',
+            'min' => 'El valor de :attribute debe ser de al menos :min.',
+            'max' => 'El valor de :attribute debe ser un máximo de :max.',
+        ];
+
+        $validator = Validator::make(request()->all(), [
+            'per_page' => 'integer|min:2|max:50',
+        ], $messages);
+
+        if ($validator->fails()) {
+            $returnData = array(
+                'status' => 'error',
+                'error' => $validator->messages()
+            );
+            return $returnData;
+        }
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+
+        $perPage = 15;
+        if (request()->has('per_page')) {
+            $perPage = (int) request()->per_page;
+        }
+
+        $results = $collection->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginated = new LengthAwarePaginator($results, $collection->count(), $perPage, $page, [
+            'path' => LengthAwarePaginator::resolveCurrentPath(),
+        ]);
+
+        $paginated->appends(request()->all());
+
+        return $paginated;
+    }
+
     protected function transformData($data, $transformer)
     {
         $transformation = fractal($data, new $transformer);
 
         return $transformation->toArray();
+    }
+
+    protected function cacheResponse($data)
+    {
+        $url = request()->url();
+        $queryParams = request()->query();
+
+        ksort($queryParams);
+
+        $queryString = \http_build_query($queryParams);
+
+        $fullUrl = "{$url}?{$queryString}";
+
+        return Cache::remember($fullUrl, 30, function () use ($data) {
+            return $data;
+        });
     }
 }

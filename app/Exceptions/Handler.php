@@ -4,9 +4,13 @@ namespace App\Exceptions;
 
 use Exception;
 use Asm89\Stack\CorsService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -49,10 +53,42 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        if ($exception instanceof ModelNotFoundException)
-        {
+        if ($exception instanceof ModelNotFoundException && $request->wantsJson()) {
             return response()->json([
-                'error' => 'Entrada para '.str_replace('App\\', '', $exception->getModel()).' no encontrada'], 404);
+                'error' => 'Entrada para ' . str_replace('App\\', '', $exception->getModel()) . ' no encontrada.'
+            ], 404);
+        }
+
+        if ($exception instanceof AuthenticationException) {
+            return $this->unauthenticated($request, $exception);
+        }
+
+        if ($exception instanceof AuthorizationException && $request->wantsJson()) {
+            return response()->json([
+                'error' => 'No posee permisos para ejecutar esta acción.'
+            ], 403);
+        }
+
+        if ($exception instanceof NotFoundHttpException && $request->wantsJson()) {
+            return response()->json([
+                'error' => 'No se encontró la URL especificada.'
+            ], 404);
+        }
+
+        if ($exception instanceof HttpException && $request->wantsJson()) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], $exception->getStatusCode());
+        }
+
+        if ($exception instanceof MethodNotAllowedHttpException && $request->wantsJson()) {
+            return response()->json([
+                'error' => 'El método especificado en la petición no es válido.'
+            ], 405);
+        }
+
+        if ($exception instanceof TokenMismatchException) {
+            return redirect()->back()->withInput($request->input());
         }
 
         return parent::render($request, $exception);
@@ -66,5 +102,4 @@ class Handler extends ExceptionHandler
             return parent::whoopsHandler();
         }
     }
-
 }
