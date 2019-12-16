@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Events\UserMailChanged;
 use Illuminate\Auth\Events\Verified;
 use App\Transformers\UserTransformer;
-use App\Http\Requests\StoreUserRequest;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\ApiController;
 use Illuminate\Foundation\Auth\VerifiesEmails;
@@ -18,8 +17,8 @@ class UserController extends ApiController
 
     public function __construct()
     {
-        parent::__construct();
-
+        $this->middleware('client.credentials')->only(['store']);
+        $this->middleware('auth:api')->except(['store']);
         $this->middleware('transform.input:' . UserTransformer::class)->only(['store', 'update']);
     }
     /**
@@ -48,9 +47,16 @@ class UserController extends ApiController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreUserRequest $request)
+    public function store(Request $request)
     {
         try {
+            $request->validate([
+                'name' => 'required|min:2',
+                'lastname' => 'required|min:2',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6|confirmed',
+            ]);
+
             // Datos faltantes
             $request->admin = false;
 

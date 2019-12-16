@@ -2,18 +2,19 @@
 
 namespace App;
 
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\VerifyApiEmail;
+use App\Transformers\UserTransformer;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\VerifyUpdatedEmail;
-use App\Transformers\UserTransformer;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable, SoftDeletes;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     public $transformer = UserTransformer::class;
 

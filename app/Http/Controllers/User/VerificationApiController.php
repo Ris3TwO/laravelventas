@@ -12,6 +12,11 @@ use Illuminate\Routing\Exceptions\InvalidSignatureException;
 class VerificationApiController extends ApiController
 {
     use VerifiesEmails;
+
+    public function __construct()
+    {
+        $this->middleware('client.credentials')->only(['resend']);
+    }
     /**
      * Show the email verification notice.
      *

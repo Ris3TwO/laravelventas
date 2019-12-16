@@ -8,6 +8,10 @@ use App\Http\Controllers\ApiController;
 
 class ProductController extends ApiController
 {
+    public function __construct()
+    {
+        $this->middleware('client.credentials')->only(['index', 'show']);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -39,8 +43,7 @@ class ProductController extends ApiController
         try {
             return $this->showOne($product);
         } catch (QueryException $ex) {
-            if (!config('app.debug'))
-            {
+            if (!config('app.debug')) {
                 return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
             }
 

@@ -8,6 +8,10 @@ use App\Http\Controllers\ApiController;
 
 class TransactionController extends ApiController
 {
+    public function __construct()
+    {
+        parent::__construct();
+    }
     /**
      * Display a listing of the resource.
      *
@@ -39,8 +43,7 @@ class TransactionController extends ApiController
         try {
             return $this->showOne($transaction);
         } catch (QueryException $ex) {
-            if (!config('app.debug'))
-            {
+            if (!config('app.debug')) {
                 return $this->errorResponse('El recurso no se pudo obtener, intente nuevamente más tarde.', 409);
             }
 

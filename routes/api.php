@@ -70,7 +70,6 @@ Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
      * Users
      */
     Route::resource('users', 'User\UserController', ['except' => ['create', 'edit']]);
-    // Route::get('users/verify/{id}', 'User\UserController@verify')->name('verify');
 
     /**
      * Email Verification
@@ -78,9 +77,7 @@ Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
     Route::post('email/resend', 'User\VerificationApiController@resend')->name('verificationapi.resend');
     Route::get('email/verify/{id}', 'User\VerificationApiController@verify')->name('verificationapi.verify')->middleware('signed');
 
-    // Route::get('email', function () {
-    //     return new App\Mail\EmailVerification(App\User::findOrFail(900));
-    // });
+    Route::post('oauth/token', '\Laravel\Passport\Http\Controllers\AccessTokenController@issueToken')->name('passport.token');
 });
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {

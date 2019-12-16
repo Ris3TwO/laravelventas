@@ -60,7 +60,12 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof AuthenticationException) {
-            return $this->unauthenticated($request, $exception);
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthenticated.'], 401);
+            }
+
+            return redirect()->guest(route('login'));
+            // return $this->unauthenticated($request, $exception);
         }
 
         if ($exception instanceof AuthorizationException && $request->wantsJson()) {
