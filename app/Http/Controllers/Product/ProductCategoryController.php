@@ -6,6 +6,7 @@ use App\Category;
 use App\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use Illuminate\Database\QueryException;
 
 class ProductCategoryController extends ApiController
 {
@@ -15,6 +16,8 @@ class ProductCategoryController extends ApiController
         $this->middleware('auth:api')->except(['index']);
 
         $this->middleware('scope:manage-products')->except('index');
+        $this->middleware('can:add-category,product')->only('update');
+        $this->middleware('can:delete-category,product')->only('destroy');
     }
 
     /**

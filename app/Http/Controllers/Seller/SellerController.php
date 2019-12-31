@@ -13,6 +13,7 @@ class SellerController extends ApiController
     {
         parent::__construct();
         $this->middleware('scope:read-general')->only('show');
+        $this->middleware('can:view,seller')->only('show');
     }
     /**
      * Display a listing of the resource.
@@ -21,6 +22,8 @@ class SellerController extends ApiController
      */
     public function index()
     {
+        $this->allowedAdminAction();
+
         try {
             $sellers = Seller::has('products')->get();
 

@@ -46,6 +46,7 @@ class CategoryController extends ApiController
      */
     public function store(Request $request)
     {
+        $this->allowedAdminAction();
         try {
             $data = $request->validate([
                 'name' => 'required|min:2|max:20',
@@ -92,6 +93,7 @@ class CategoryController extends ApiController
      */
     public function update(Request $request, Category $category)
     {
+        $this->allowedAdminAction();
         try {
             $request->validate([
                 'name' => 'min:2|max:20',
@@ -128,6 +130,7 @@ class CategoryController extends ApiController
      */
     public function destroy(Category $category)
     {
+        $this->allowedAdminAction();
         try {
             $category->delete();
 

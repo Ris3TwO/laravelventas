@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ Route::group(['domain' => 'api.' . Config::get('app.url')], function () {
      */
     Route::fallback(function () {
         return response()->json([
-            'message' => 'Página no encontrada. Si el error persiste, póngase en contacto con el administrador a través del correo: info@laravelventas.test'
+            'error' => 'Página no encontrada. Si el error persiste, póngase en contacto con el administrador a través del correo: info@laravelventas.test'
         ], 404);
     });
 

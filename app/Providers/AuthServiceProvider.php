@@ -16,6 +16,11 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         // 'App\Model' => 'App\Policies\ModelPolicy',
+        'App\Buyer' => 'App\Policies\BuyerPolicy',
+        'App\Seller' => 'App\Policies\SellerPolicy',
+        'App\User' => 'App\Policies\UserPolicy',
+        'App\Transaction' => 'App\Policies\TransactionPolicy',
+        'App\Product' => 'App\Policies\ProductPolicy',
     ];
 
     /**
@@ -26,6 +31,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerPolicies();
+
+        Gate::define('admin-action', function ($user) {
+            return $user->admin === true || $user->admin === "1";
+        });
 
         Passport::routes();
         Passport::tokensExpireIn(Carbon::now()->addMinutes(30));

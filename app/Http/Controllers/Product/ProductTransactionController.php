@@ -20,6 +20,8 @@ class ProductTransactionController extends ApiController
      */
     public function index(Product $product)
     {
+        $this->allowedAdminAction();
+
         try {
             $transactions = $product->transactions;
 

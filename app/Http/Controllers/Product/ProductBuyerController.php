@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Product;
 use App\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use Illuminate\Database\QueryException;
 
 class ProductBuyerController extends ApiController
 {
@@ -19,6 +20,8 @@ class ProductBuyerController extends ApiController
      */
     public function index(Product $product)
     {
+        $this->allowedAdminAction();
+
         try {
             $buyers = $product->transactions()
                 ->with('buyer')

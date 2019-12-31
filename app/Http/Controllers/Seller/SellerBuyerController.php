@@ -20,6 +20,8 @@ class SellerBuyerController extends ApiController
      */
     public function index(Seller $seller)
     {
+        $this->allowedAdminAction();
+
         try {
             $buyers = $seller->products()
                 ->whereHas('transactions')
