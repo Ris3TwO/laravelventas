@@ -20,6 +20,8 @@ class UserController extends ApiController
         $this->middleware('client.credentials')->only(['store']);
         $this->middleware('auth:api')->except(['store']);
         $this->middleware('transform.input:' . UserTransformer::class)->only(['store', 'update']);
+
+        $this->middleware('scope:manage-account')->only(['show', 'update']);
     }
     /**
      * Display a listing of the resource.

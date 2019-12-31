@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Buyer;
 use App\Buyer;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use Illuminate\Database\QueryException;
 
 class BuyerSellerController extends ApiController
 {

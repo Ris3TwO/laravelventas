@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Transformers\ProductTransformer;
 use App\Http\Requests\StoreSellerProductRequest;
+use Illuminate\Auth\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class SellerProductController extends ApiController
@@ -20,6 +21,7 @@ class SellerProductController extends ApiController
         parent::__construct();
 
         $this->middleware('transform.input:' . ProductTransformer::class)->only(['store', 'update']);
+        $this->middleware('scope:manage-products')->except('index');
     }
     /**
      * Display a listing of the resource.
@@ -29,9 +31,13 @@ class SellerProductController extends ApiController
     public function index(Seller $seller)
     {
         try {
-            $products = $seller->products;
+            if (request()->user()->tokenCan('read-general') || request()->user()->tokenCan('manage-products')) {
+                $products = $seller->products;
 
-            return $this->showAll($products);
+                return $this->showAll($products);
+            }
+
+            throw new AuthenticationException;
         } catch (QueryException $ex) {
             if (!config('app.debug')) {
                 return $this->errorResponse('Ocurrió un problema inesperado, intente nuevamente más tarde.', 500);

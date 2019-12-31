@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Category;
 use App\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use Illuminate\Database\QueryException;
 
 class CategoryProductController extends ApiController
 {

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Transaction;
 use App\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use Illuminate\Database\QueryException;
 
 class TransactionSellerController extends ApiController
 {
     public function __construct()
     {
         parent::__construct();
+        $this->middleware('scope:read-general')->only('index');
     }
     /**
      * Display a listing of the resource.

@@ -6,6 +6,7 @@ use App\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use App\Transformers\CategoryTransformer;
+use Illuminate\Database\QueryException;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class CategoryController extends ApiController
